@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
+require('dotenv').config();
 
-const mongoURL = "mongodb+srv://5841asifkhan:Asif%40123@clusterx.zt65j.mongodb.net/Hotel?retryWrites=true&w=majority&appName=ClusterX";
+const mongoURL = process.env.DB_URL;
 
 mongoose.connect(mongoURL, {
   useNewUrlParser: true,
