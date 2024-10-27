@@ -1,31 +1,47 @@
 const express = require('express');
 const app = express();
-const db = require('./db');
 require('dotenv').config();
-
-
-app.get('/', (req, res)=>{
-  res.send('Hello There we are here');
-})
-
-
-
+const passport = require('./auth'); // Custom passport configuration
 const bodyParser = require('body-parser');
-app.use(bodyParser.json()); //data hold on req.body
 
-const PORT = process.env.PORT || 3000;
+// Database connection
+const db = require('./db'); // Ensure this is correctly set up in db.js
 
+// Middleware to log incoming requests
+const logRequest = (req, res, next) => {
+  console.log(`${new Date().toLocaleString()} Request Made to: ${req.originalUrl}`);
+  next();
+};
+
+app.use(logRequest);
+app.use(bodyParser.json()); // Middleware to parse JSON request bodies
+
+// Initialize passport
+app.use(passport.initialize());
+
+// Define local authentication middleware
+const localAuthMiddleware = passport.authenticate('local', { session: false });
+
+// Authentication-protected endpoint (uncomment when ready to use)
+// app.get('/', localAuthMiddleware, (req, res) => {
+//   res.send('Welcome Hotel Management System');
+// });
+
+// Public endpoint
+app.get('/', (req, res) => {
+  res.send('Welcome Hotel Management System');
+});
+
+// Import route files
 const personRoutes = require('./routes/personRoutes');
 const menuRoutes = require('./routes/menuRoutes');
 
-
+// Routes
 app.use('/menu', menuRoutes);
-app.use('/person', personRoutes);
+app.use('/person', localAuthMiddleware, personRoutes); // Protected route
 
-
-
-app.listen(PORT, () =>{
-  console.log('port listening at 3000');
-})
-
-
+// Server port
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}`);
+});
