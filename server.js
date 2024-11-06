@@ -38,7 +38,7 @@ const menuRoutes = require('./routes/menuRoutes');
 
 // Routes
 app.use('/menu', menuRoutes);
-app.use('/person', localAuthMiddleware, personRoutes); // Protected route
+app.use('/person', personRoutes); // Protected route
 
 // Server port
 const PORT = process.env.PORT || 3000;

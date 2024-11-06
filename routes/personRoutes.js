@@ -1,19 +1,35 @@
 const express = require('express');
 const router = express.Router();
-
-
 const Person = require('./../model/person');
+const {jwtAutMiddleware, generateToken} = require('./../jwt');
+
+
 const { Message } = require('@mui/icons-material');
 
-router.post('/', async (req, res)=>{
+router.post('/signup', async (req, res)=>{
   try{
+
     const data = req.body
   
+    //create a new user person document using the mangoose model
     const newPerson = new Person(data);
-    const response = await newPerson.save();
 
+    // Save the person to the database
+    const response = await newPerson.save();
     console.log('Data Save');
-    res.status(200).json(response);
+
+    const payload = {
+      id: response.id,
+      username: response.username
+    }
+
+
+    console.log(JSON.stringify(payload));
+    const token = generateToken(payload);
+    console.log("Token is : ", token);
+
+    
+    res.status(200).json({response: response, token: token});
 
   }
   catch(err){
