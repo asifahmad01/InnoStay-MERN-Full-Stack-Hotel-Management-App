@@ -40,8 +40,65 @@ router.post('/signup', async (req, res)=>{
 })
 
 
+//login Route
+router.post('/login', async(req, res)=>{
 
-router.get('/', async (req, res)=>{
+  try{
+    //Extract username and password from request body
+    const {username, password} = req.body;
+
+    //Find the user by username
+    const user = await Person.findOne({username: username});
+
+    //if user does not exist or password does not match
+    if(!user || !(await user.comparePassword(password))){
+      console.log('Invalid user name or password');
+      return res.status(401).json({error: "Invalid user name or password"});
+      
+    }
+
+
+    //generate token 
+
+    const payload = {
+      id: user.id,
+      username: user.username
+    }
+
+    const token = generateToken(payload);
+
+    //return token as response
+    res.json({token})
+
+  }
+  catch(error){
+    console.error(err);
+    res.status(500).json({error: 'Internal Server Error'});
+  }
+  
+})
+
+
+router.get('/profile', jwtAutMiddleware, async(req, res)=>{
+  try{
+    const userData = req.user;
+    console.log("user Data :", userData);
+
+    const userId = userData.id;
+    const user = await Person.findById(userId);
+
+    res.status(200).json({user});
+
+  }
+  catch(error){
+    console.error(err);
+    res.status(500).json({error: 'Internal Server Error'});
+  }
+
+})
+
+
+router.get('/', jwtAutMiddleware, async (req, res)=>{
   try{
     const featchDate = await Person.find();
     console.log('Data Featched');
