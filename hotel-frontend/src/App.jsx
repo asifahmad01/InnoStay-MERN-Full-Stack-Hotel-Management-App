@@ -9,7 +9,9 @@ import {
 
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout         from './components/Layout';
-import AuthProvider from './contexts/AuthProvider';
+// src/App.jsx
+import { AuthProvider } from './contexts/AuthProvider';
+
 
 
 import Welcome   from './pages/welcome';

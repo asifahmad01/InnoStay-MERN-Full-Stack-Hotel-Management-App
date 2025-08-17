@@ -1,42 +1,58 @@
 // src/contexts/AuthProvider.jsx
-import React, { createContext, useState } from 'react';
-import API from '../api/client';
+import React, { createContext, useState, useEffect } from "react";
+import API from "../api/client";
 
-export const AuthContext = createContext();
+export const AuthContext = createContext(null);
 
-export default function AuthProvider({ children }) {
+export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem('user');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      return JSON.parse(localStorage.getItem("user")) || null;
+    } catch {
+      return null;
+    }
   });
-  const [token, setToken] = useState(() => localStorage.getItem('token'));
+
+  const [token, setToken] = useState(() => localStorage.getItem("token") || null);
+
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem("user", JSON.stringify(user));
+    } else {
+      localStorage.removeItem("user");
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (token) {
+      localStorage.setItem("token", token);
+    } else {
+      localStorage.removeItem("token");
+    }
+  }, [token]);
 
   const login = async (username, password) => {
-    const { data } = await API.post('/person/login', { username, password });
-    localStorage.setItem('token', data.token);
-    localStorage.setItem('user', JSON.stringify(data.user));
+    const { data } = await API.post("/person/login", { username, password });
     setToken(data.token);
     setUser(data.user);
   };
 
   const signup = async (details) => {
-    const { data } = await API.post('/person/signup', details);
-    localStorage.setItem('token', data.token);
-    localStorage.setItem('user', JSON.stringify(data.user));
+    const { data } = await API.post("/person/signup", details);
     setToken(data.token);
     setUser(data.user);
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
     setToken(null);
     setUser(null);
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
   };
 
-  return (
-    <AuthContext.Provider value={{ user, token, login, signup, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  const value = { user, token, login, signup, logout };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
+
+export default AuthProvider;

@@ -1,20 +1,28 @@
 const express = require('express');
-const app = express();
+const cors = require('cors');
+const bodyParser = require('body-parser');
 require('dotenv').config();
 const passport = require('./auth'); // Custom passport configuration
-const bodyParser = require('body-parser');
+const db = require('./db'); // Ensure db.js is configured correctly
 
-// Database connection
-const db = require('./db'); // Ensure this is correctly set up in db.js
+const app = express();
 
-// Middleware to log incoming requests
+// Middleware: log requests
 const logRequest = (req, res, next) => {
-  console.log(`${new Date().toLocaleString()} Request Made to: ${req.originalUrl}`);
+  console.log(`${new Date().toLocaleString()} Request Made to: ${req.method} ${req.originalUrl}`);
   next();
 };
 
+// ✅ Enable CORS
+app.use(cors({
+  origin: "http://localhost:5173", // frontend URL (Vite)
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true
+}));
+
 app.use(logRequest);
-app.use(bodyParser.json()); // Middleware to parse JSON request bodies
+app.use(bodyParser.json()); // parse JSON bodies
 
 // Initialize passport
 app.use(passport.initialize());
@@ -22,26 +30,25 @@ app.use(passport.initialize());
 // Define local authentication middleware
 const localAuthMiddleware = passport.authenticate('local', { session: false });
 
-// Authentication-protected endpoint (uncomment when ready to use)
+// Protected route example
 // app.get('/', localAuthMiddleware, (req, res) => {
-//   res.send('Welcome Hotel Management System');
+//   res.send('Welcome Hotel Management System (protected)');
 // });
 
-// Public endpoint
+// Public route
 app.get('/', (req, res) => {
   res.send('Welcome Hotel Management System');
 });
 
-// Import route files
+// Routes
 const personRoutes = require('./routes/personRoutes');
 const menuRoutes = require('./routes/menuRoutes');
 
-// Routes
+app.use('/person', personRoutes);
 app.use('/menu', menuRoutes);
-app.use('/person', personRoutes); // Protected route
 
 // Server port
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
+  console.log(`🚀 Server listening on http://localhost:${PORT}`);
 });
