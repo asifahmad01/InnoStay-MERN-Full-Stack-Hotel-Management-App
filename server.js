@@ -3,7 +3,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 require('dotenv').config();
 const passport = require('./auth'); // Custom passport configuration
-const db = require('./db'); // Ensure db.js is configured correctly
+const connectDB = require('./db'); // Import the connectDB function
 
 const app = express();
 
@@ -49,6 +49,13 @@ app.use('/menu', menuRoutes);
 
 // Server port
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server listening on http://localhost:${PORT}`);
+
+// Connect to MongoDB before starting the server
+connectDB().then(() => {
+    app.listen(PORT, () => {
+        console.log(`🚀 Server listening on http://localhost:${PORT}`);
+    });
+}).catch(err => {
+    console.error('Failed to connect to MongoDB:', err);
+    process.exit(1);
 });
